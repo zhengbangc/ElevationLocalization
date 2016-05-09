@@ -5,6 +5,7 @@ import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import axes3d
+import csv
 
 ELEVATION_BASE_URL = 'http://maps.google.com/maps/api/elevation/json'
 CHART_BASE_URL = 'http://chart.googleapis.com/chart'
@@ -110,6 +111,7 @@ if __name__ == '__main__':
     pointsStr = ""
     pointsStr = str(getPointsEvenly(float(latitude), float(longitude), pointsStr, points_x, points_y, points_z))
     # getElevation(pointsStr, coordX, coordY)
+    print points_x
 
     csvOutputArray = []
     for i in range(len(points_x)):
