@@ -9,14 +9,14 @@ from mpl_toolkits.mplot3d import axes3d
 ELEVATION_BASE_URL = 'http://maps.google.com/maps/api/elevation/json'
 CHART_BASE_URL = 'http://chart.googleapis.com/chart'
 
-def getElevation(pointsStr,coordX, coordY, ax, lowest_elevation, samples="100",sensor="false", **elvtn_args):
+def getElevation(pointsStr,coordX, coordY, ax, lowest_elevation, points_x, points_y, points_z, samples="100",sensor="false", **elvtn_args):
     elvtn_args.update({
         'locations': pointsStr,
         # 'samples': samples,
         'sensor': sensor
     })
 
-    url = ELEVATION_BASE_URL + '?' + urllib.urlencode(elvtn_args) + '&key=AIzaSyB9xkueVBpa6AayZsmhYaook81fMArbi88'
+    url = ELEVATION_BASE_URL + '?' + urllib.urlencode(elvtn_args)
     # print url
     response = simplejson.load(urllib.urlopen(url))
 
@@ -25,7 +25,7 @@ def getElevation(pointsStr,coordX, coordY, ax, lowest_elevation, samples="100",s
     elevationArray = []
     for resultset in response['results']:
       elevationArray.append(resultset['elevation'])
-
+      points_z.append(resultset['elevation'])
         
     X = coordX
     Y = coordY
@@ -48,31 +48,33 @@ def rtpairs(r, n):
 #this function takes in a coordinate's latitude, longitude, and an array to contain all the points generated
 #T specified the number of points at a certain radius and R is an arry of possible radius
 #Might need to change the numbers because 1) 512 points per request limit 2)the error range of GSM tower might be different
-def getPointsEvenly(latitude, longitude, pointsStr, coordX, coordY):
-    T = [1,2,4,6, 8,10, 12,14,16,18,20,22,24,26,28,30,32,34,36,38,40,42,44,46,48,50,52,54,56,58,60,62,64,66,68,70,72,74,76,78,80,82,84,86,88,90,92,94,96]
-    R = [0.0,5,10,15, 20,25, 30,35,40,45,50,55,60,65,70,75,80,85,90,95,100,105,110,115,120,125,130,135,140,145,150,155,160,165,170,185,180,195,200,205,210,215,220,225,230,235,240,245,250]
-    for i in range(len(R)):
-        R[i] = R[i]/5
+def getPointsEvenly(latitude, longitude, pointsStr, points_x, points_y, points_z):
+    T = [1, 5,10,15, 20,25, 30,35, 40,45, 50,55, 60] #sum should < 512
+    R = [0.0,5, 10,15, 20,25,30,35,40,45, 50,55, 60]
     count = 0
     lowest_elevation = 1000
     zscale = 5
     fig = plt.figure()
+    coordX = []
+    coordY = []
     ax = fig.add_subplot(111, projection='3d')
     for r, t in rtpairs(R, T):
         cur_latitude = latitude + (r*np.cos(t))/6378000*(180/np.pi)
         cur_longitude = longitude + (r*np.sin(t))/6378000*(180/np.pi)/np.cos(latitude*np.pi/180)
         coordX.append(cur_latitude)
+        points_x.append(cur_latitude)
         coordY.append(cur_longitude)
+        points_y.append(cur_longitude)
         pointsStr += str(cur_latitude)+","+ str(cur_longitude) + "|"
         count = count + 1
         if(count % 50 == 0):
             pointsStr = pointsStr[:-1]
-            lowest_elevation = getElevation(pointsStr, coordX, coordY, ax, lowest_elevation)
+            lowest_elevation = getElevation(pointsStr, coordX, coordY, ax, lowest_elevation,points_x, points_y, points_z)
             coordX = []
             coordY = []
             pointsStr = ""
     pointsStr = pointsStr[:-1]
-    lowest_elevation = getElevation(pointsStr, coordX, coordY, ax, lowest_elevation)
+    lowest_elevation = getElevation(pointsStr, coordX, coordY, ax, lowest_elevation, points_x, points_y, points_z)
     coordX = []
     coordY = []
     pointsStr = ""
@@ -99,8 +101,24 @@ if __name__ == '__main__':
     if not longitude:
       longitude = -88.239050
 
+    points_x = []
+    points_y = []
+    points_z = []
+
     coordX = []
     coordY = []
     pointsStr = ""
-    pointsStr = str(getPointsEvenly(float(latitude), float(longitude), pointsStr, coordX, coordY))
+    pointsStr = str(getPointsEvenly(float(latitude), float(longitude), pointsStr, points_x, points_y, points_z))
     # getElevation(pointsStr, coordX, coordY)
+
+    csvOutputArray = []
+    for i in range(len(points_x)):
+        # ax.scatter(points_x[i],points_y[i], points_z[i], c='b', marker='o')
+        csvOutputArray.append([points_x[i], points_y[i],points_z[i]])
+
+    #Output the large circle into a csv
+    with open('mydata.csv', 'w') as mycsvfile:
+        thedatawriter = csv.writer(mycsvfile, dialect='excel')
+        for row in csvOutputArray:
+            thedatawriter.writerow(row)
+
