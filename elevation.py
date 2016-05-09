@@ -9,13 +9,14 @@ import csv
 import operator
 import time
 
-ELEVATION_BASE_URL = 'http://maps.google.com/maps/api/elevation/json'
+ELEVATION_BASE_URL = 'https://maps.google.com/maps/api/elevation/json'
 CHART_BASE_URL = 'http://chart.googleapis.com/chart'
 
 # Obtain data from csv file
-Path_CSV = open("paths/07-33-16_12:33:43_MSFINAL.csv")
+Path_CSV = open("paths/07-35-16_12:35:51_MSFINAL.csv")
 CSV_Reader = csv.reader(Path_CSV)
 Path_List = list(CSV_Reader) #the third column are elevations
+print len(Path_List)
 
 
 
@@ -26,9 +27,9 @@ def getElevation(pointsStr,coordX, coordY, ax, lowest_elevation, points_z, sampl
         'sensor': sensor
     })
 
-    url = ELEVATION_BASE_URL + '?' + urllib.urlencode(elvtn_args)
+    url = ELEVATION_BASE_URL + '?' + urllib.urlencode(elvtn_args) + '&key=AIzaSyBgiEsyAW3QsOIINxTCEv8o4ZQmog6F14Q'
+    # url = "https://maps.googleapis.com/maps/api/elevation/json?locations=39.7391536,-104.9847034&key=AIzaSyDxBVLVXChcMc0DvFZTtaMTS3J7UV5CCJE"
     response = simplejson.load(urllib.urlopen(url))
-
     # Create a dictionary for each results[] object
     elevationArray = []
     for resultset in response['results']:
@@ -39,7 +40,6 @@ def getElevation(pointsStr,coordX, coordY, ax, lowest_elevation, points_z, sampl
     X = coordX
     Y = coordY
     Z = elevationArray
-
 
     i = 0;
     while i < len(X):
@@ -59,8 +59,8 @@ def rtpairs(r, n):
 #this function takes in a coordinate's latitude, longitude, and an array to contain all the points generated
 #T specified the number of points at a certain radius and R is an arry of possible radius
 def getPointsEvenly(latitude, longitude, pointsStr, points_x, points_y, points_z, lowest_elevation):
-    T = [1, 5,10,15, 20,25, 30,35, 40,45, 50,55, 60]
-    R = [0.0,5, 10,15, 20,25,30,35,40,45, 50,55, 60]
+    T = [1, 5,10,15, 20,25, 30]
+    R = [0.0,5, 10,15, 20,25,30]
     count = 0
     coordX = []
     coordY = []
@@ -88,8 +88,8 @@ def getPointsEvenly(latitude, longitude, pointsStr, points_x, points_y, points_z
     return lowest_elevation
 
 def getPointsEvenlySmall(latitude, longitude, points_x, points_y, points_z):
-    T = [1, 5,10,15, 20,25, 30,35, 40,45, 50,55, 60]
-    R = [0.0,2,4,6,8,10,12,14,16,18,20,22,24]
+    T = [1, 2,4,6,8,10]
+    R = [0.0,2,4,6,8,10]
     count = 0
     coordX = []
     coordY = []
@@ -166,22 +166,25 @@ def calculate_path (points_x, points_y, points_z, ten_points):
     z0_index_4 = map(operator.itemgetter(0), sorted_distance_to_z0[0:5])[4]
     distance_z0 = []
     distance_z0.append(calculateDistanceEachPath(points_x, points_y, z0_index_0,ten_points))
-    time.sleep(1) 
+    # time.sleep(0.5) 
     distance_z0.append(calculateDistanceEachPath(points_x, points_y, z0_index_1,ten_points))
-    time.sleep(1) 
+    # time.sleep(0.5) 
     distance_z0.append(calculateDistanceEachPath(points_x, points_y, z0_index_2,ten_points))
-    time.sleep(1) 
+    # time.sleep(0.5) 
     distance_z0.append(calculateDistanceEachPath(points_x, points_y, z0_index_3,ten_points))
-    time.sleep(1) 
+    # time.sleep(0.5) 
     distance_z0.append(calculateDistanceEachPath(points_x, points_y, z0_index_4,ten_points))
     lowest_distance = 1
-    for i in range(5):
-        if()
-
-
-    
-
-    return
+    lowest_distance_index = 0;
+    for i in range (5):
+        if distance_z0[i] < lowest_distance:
+            lowest_distance_index = i
+    z0_index_final = map(operator.itemgetter(0), sorted_distance_to_z0[0:5])[lowest_distance_index]
+    z0_final = []
+    z0_final.append(points_x[z0_index_final])
+    z0_final.append(points_y[z0_index_final])
+    z0_final.append(points_z[z0_index_final])
+    return z0_final
 
 
 
@@ -209,13 +212,29 @@ if __name__ == '__main__':
     ax.set_ylabel("longitude")
     ax.set_zlabel("elevation")
 
+    pathLongitute = []
+    pathLatitude = []
+    pathElevation = []
+
 
     points_x = []
     points_y = []
     points_z = []
-    #generate points_x, points_y, points_z arrays and add points to the graphs
-    lowest_elevation = getPointsEvenly(float(Path_List[0][0]), float(Path_List[0][1]), pointsStr, points_x, points_y, points_z, lowest_elevation)
-    calculate_path(points_x, points_y, points_z, Path_List[0][2:12])    
+    
+    path_final = []
+    for i in range(len(Path_List)):
+        #generate points_x, points_y, points_z arrays and add points to the graphs
+        lowest_elevation = getPointsEvenly(float(Path_List[i][0]), float(Path_List[i][1]), pointsStr, points_x, points_y, points_z, lowest_elevation)
+        path_final = calculate_path(points_x, points_y, points_z, Path_List[i][2:12])
+        pathLongitute.append(path_final[0])
+        pathLatitude.append(path_final[1])
+        pathElevation.append(path_final[2])
 
-    ax.set_zlim3d(lowest_elevation, lowest_elevation+zscale)
-    # plt.show()    
+
+    for i in range(len(pathLongitute)):
+        ax.scatter(pathLatitude[i],pathLongitute[i], pathElevation[i], c='b', marker='o')
+    
+    # ax.set_zlim3d(lowest_elevation, lowest_elevation+zscale)
+    # ax.set_xlim3d(40.08, 40.10)
+    # ax.set_ylim3d(-88.2415, -88.2408)
+    plt.show()    
