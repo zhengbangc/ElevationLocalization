@@ -59,8 +59,11 @@ def rtpairs(r, n):
 #this function takes in a coordinate's latitude, longitude, and an array to contain all the points generated
 #T specified the number of points at a certain radius and R is an arry of possible radius
 def getPointsEvenly(latitude, longitude, pointsStr, points_x, points_y, points_z, lowest_elevation):
-    T = [1, 5,10,15, 20,25, 30]
-    R = [0.0,5, 10,15, 20,25,30]
+    T = [1,2,4,6, 8,10, 12,14,16,18,20,22,24,26,28,30,32,34,36,38,40,42,44,46,48,50,52,54,56,58,60,62,64,66,68,70,72,74,76,78,80,82,84,86,88,90,92,94,96]
+    R = [0.0,5,10,15, 20,25, 30,35,40,45,50,55,60,65,70,75,80,85,90,95,100,105,110,115,120,125,130,135,140,145,150,155,160,165,170,185,180,195,200,205,210,215,220,225,230,235,240,245,250]
+    for i in range(len(T)):
+        T[i] = 10*T[i]
+
     count = 0
     coordX = []
     coordY = []
@@ -87,108 +90,144 @@ def getPointsEvenly(latitude, longitude, pointsStr, points_x, points_y, points_z
     pointsStr = ""
     return lowest_elevation
 
-def getPointsEvenlySmall(latitude, longitude, points_x, points_y, points_z):
-    T = [1, 2,4,6,8,10]
-    R = [0.0,2,4,6,8,10]
-    count = 0
-    coordX = []
-    coordY = []
-    pointsStr = ''
-    for r, t in rtpairs(R, T):
-        cur_latitude = latitude + (r*np.cos(t))/6378000*(180/np.pi)
-        cur_longitude = longitude + (r*np.sin(t))/6378000*(180/np.pi)/np.cos(latitude*np.pi/180)
-        coordX.append(cur_latitude)
-        coordY.append(cur_longitude)
-        points_x.append(cur_latitude)
-        points_y.append(cur_longitude)
-        pointsStr += str(cur_latitude)+","+ str(cur_longitude) + "|"
-        count = count + 1
-        if(count % 50 == 0):
-            pointsStr = pointsStr[:-1]
-            getElevation(pointsStr, coordX, coordY, ax, lowest_elevation, points_z)
-            coordX = []
-            coordY = []
-            pointsStr = ""
-    #After finishing obtain all the points, clear the variables for getting next circles of points
-    pointsStr = pointsStr[:-1]
-    getElevation(pointsStr, coordX, coordY, ax, lowest_elevation, points_z)
-    coordX = []
-    coordY = []
-    pointsStr = ""
-    return 
+#find 5 closest point index to zx
+def calculteClosest5points (points_z, ten_points, zx):
+    distance_to_zx = dict()
+    for i in range(len(points_z)):
+        distance_to_zx[i] = abs(float(points_z[i]) - float(ten_points[zx]))
+    sorted_distance_to_zx = sorted(distance_to_zx.items(), key=operator.itemgetter(1))
+    closest_to_zx_idx = []
+    closest_to_zx_idx.append(map(operator.itemgetter(0), sorted_distance_to_zx[0:20])[0])
+    closest_to_zx_idx.append(map(operator.itemgetter(0), sorted_distance_to_zx[0:20])[1])
+    closest_to_zx_idx.append(map(operator.itemgetter(0), sorted_distance_to_zx[0:20])[2])
+    closest_to_zx_idx.append(map(operator.itemgetter(0), sorted_distance_to_zx[0:20])[3])
+    closest_to_zx_idx.append(map(operator.itemgetter(0), sorted_distance_to_zx[0:20])[4])
+    closest_to_zx_idx.append(map(operator.itemgetter(0), sorted_distance_to_zx[0:20])[5])
+    closest_to_zx_idx.append(map(operator.itemgetter(0), sorted_distance_to_zx[0:20])[6])
+    closest_to_zx_idx.append(map(operator.itemgetter(0), sorted_distance_to_zx[0:20])[7])
+    closest_to_zx_idx.append(map(operator.itemgetter(0), sorted_distance_to_zx[0:20])[8])
+    closest_to_zx_idx.append(map(operator.itemgetter(0), sorted_distance_to_zx[0:20])[9])
+    closest_to_zx_idx.append(map(operator.itemgetter(0), sorted_distance_to_zx[0:20])[10])
+    closest_to_zx_idx.append(map(operator.itemgetter(0), sorted_distance_to_zx[0:20])[11])
+    closest_to_zx_idx.append(map(operator.itemgetter(0), sorted_distance_to_zx[0:20])[12])
+    closest_to_zx_idx.append(map(operator.itemgetter(0), sorted_distance_to_zx[0:20])[13])
+    closest_to_zx_idx.append(map(operator.itemgetter(0), sorted_distance_to_zx[0:20])[14])
+    closest_to_zx_idx.append(map(operator.itemgetter(0), sorted_distance_to_zx[0:20])[15])
+    closest_to_zx_idx.append(map(operator.itemgetter(0), sorted_distance_to_zx[0:20])[16])
+    closest_to_zx_idx.append(map(operator.itemgetter(0), sorted_distance_to_zx[0:20])[17])
+    closest_to_zx_idx.append(map(operator.itemgetter(0), sorted_distance_to_zx[0:20])[18])
+    closest_to_zx_idx.append(map(operator.itemgetter(0), sorted_distance_to_zx[0:20])[19])
+
+    return closest_to_zx_idx
 
 
-def calculateDistanceEachPath (points_x, points_y, index, ten_points):
-    # now we have 5 possible points for z0, we need to search around these 5 points
-    temp_x = []
-    temp_y = []
-    temp_z = []
-    temp_latitude = points_x[index]
-    temp_longitude = points_y[index]
-    getPointsEvenlySmall(temp_latitude, temp_longitude, temp_x, temp_y, temp_z);
-    distance_to_z1 = dict()
-    distance_to_z2 = dict()
-    distance_to_z3 = dict()
-    distance_to_z4 = dict()
-    for i in range(len(temp_z)):
-        distance_to_z1[i] = abs(float(temp_z[i]) - float(ten_points[8]))
-        distance_to_z2[i] = abs(float(temp_z[i]) - float(ten_points[7]))
-        distance_to_z3[i] = abs(float(temp_z[i]) - float(ten_points[6]))
-        distance_to_z4[i] = abs(float(temp_z[i]) - float(ten_points[5]))
-    sorted_distance_to_z1 = sorted(distance_to_z1.items(), key=operator.itemgetter(1))
-    sorted_distance_to_z2 = sorted(distance_to_z2.items(), key=operator.itemgetter(1))
-    sorted_distance_to_z3 = sorted(distance_to_z3.items(), key=operator.itemgetter(1))
-    sorted_distance_to_z4 = sorted(distance_to_z4.items(), key=operator.itemgetter(1))
-    d_z1 =  map(operator.itemgetter(1), sorted_distance_to_z1[0:1])[0]
-    d_z2 =  map(operator.itemgetter(1), sorted_distance_to_z2[0:1])[0]
-    d_z3 =  map(operator.itemgetter(1), sorted_distance_to_z3[0:1])[0]
-    d_z4 =  map(operator.itemgetter(1), sorted_distance_to_z4[0:1])[0]
-    distance = d_z1 + d_z2 + d_z3 + d_z4
-    return distance
+# Add 10 values to final_path per call
+def calculate_path (points_x, points_y, points_z, final_path, ten_points):
+    points_pool_50 = []
+    for i in range(10):
+        points_pool_50.append(calculteClosest5points(points_z,ten_points,i))
+    #now we have 5 possible location for each of the 10 sample points
+    #we need to figure out a path with smallest length
+    
+    path_idices_arrays = []
+    path_len_arrays = []
+    path_idices = []
+    path_len = 0
+    distanceSquare = dict()
+    #calculate the distance between the current point and the next 5 points
+    for i in range(20):
+        for j in range(20):
+            distanceSquare[j]=(points_x[points_pool_50[0][i]]-points_x[points_pool_50[1][j]])**2 + (points_y[points_pool_50[0][i]]-points_y[points_pool_50[1][j]])**2
+        sorted_distanceSqaure = sorted(distanceSquare.items(), key=operator.itemgetter(1))
+        closest_j = map(operator.itemgetter(0), sorted_distanceSqaure)[0]
+        path_idices.append(closest_j)
+        path_len += map(operator.itemgetter(0), sorted_distanceSqaure)[1]
+        distanceSquare.clear()
+
+        for j in range(20):
+            distanceSquare[j]=(points_x[points_pool_50[1][closest_j]]-points_x[points_pool_50[2][j]])**2 + (points_y[points_pool_50[1][closest_j]]-points_y[points_pool_50[2][j]])**2
+        sorted_distanceSqaure = sorted(distanceSquare.items(), key=operator.itemgetter(1))
+        closest_j = map(operator.itemgetter(0), sorted_distanceSqaure)[0]
+        path_idices.append(closest_j)
+        path_len += map(operator.itemgetter(0), sorted_distanceSqaure)[1]
+        distanceSquare.clear()
+
+        for j in range(20):
+            distanceSquare[j]=(points_x[points_pool_50[2][closest_j]]-points_x[points_pool_50[3][j]])**2 + (points_y[points_pool_50[2][closest_j]]-points_y[points_pool_50[3][j]])**2
+        sorted_distanceSqaure = sorted(distanceSquare.items(), key=operator.itemgetter(1))
+        closest_j = map(operator.itemgetter(0), sorted_distanceSqaure)[0]
+        path_idices.append(closest_j)
+        path_len += map(operator.itemgetter(0), sorted_distanceSqaure)[1]
+        distanceSquare.clear()
+
+        for j in range(20):
+            distanceSquare[j]=(points_x[points_pool_50[3][closest_j]]-points_x[points_pool_50[4][j]])**2 + (points_y[points_pool_50[3][closest_j]]-points_y[points_pool_50[4][j]])**2
+        sorted_distanceSqaure = sorted(distanceSquare.items(), key=operator.itemgetter(1))
+        closest_j = map(operator.itemgetter(0), sorted_distanceSqaure)[0]
+        path_idices.append(closest_j)
+        path_len += map(operator.itemgetter(0), sorted_distanceSqaure)[1]
+        distanceSquare.clear()
+
+        for j in range(20):
+            distanceSquare[j]=(points_x[points_pool_50[4][closest_j]]-points_x[points_pool_50[5][j]])**2 + (points_y[points_pool_50[4][closest_j]]-points_y[points_pool_50[5][j]])**2
+        sorted_distanceSqaure = sorted(distanceSquare.items(), key=operator.itemgetter(1))
+        closest_j = map(operator.itemgetter(0), sorted_distanceSqaure)[0]
+        path_idices.append(closest_j)
+        path_len += map(operator.itemgetter(0), sorted_distanceSqaure)[1]
+        distanceSquare.clear()
+
+        for j in range(20):
+            distanceSquare[j]=(points_x[points_pool_50[5][closest_j]]-points_x[points_pool_50[6][j]])**2 + (points_y[points_pool_50[5][closest_j]]-points_y[points_pool_50[6][j]])**2
+        sorted_distanceSqaure = sorted(distanceSquare.items(), key=operator.itemgetter(1))
+        closest_j = map(operator.itemgetter(0), sorted_distanceSqaure)[0]
+        path_idices.append(closest_j)
+        path_len += map(operator.itemgetter(0), sorted_distanceSqaure)[1]
+        distanceSquare.clear()
+
+        for j in range(20):
+            distanceSquare[j]=(points_x[points_pool_50[6][closest_j]]-points_x[points_pool_50[7][j]])**2 + (points_y[points_pool_50[6][closest_j]]-points_y[points_pool_50[7][j]])**2
+        sorted_distanceSqaure = sorted(distanceSquare.items(), key=operator.itemgetter(1))
+        closest_j = map(operator.itemgetter(0), sorted_distanceSqaure)[0]
+        path_idices.append(closest_j)
+        path_len += map(operator.itemgetter(0), sorted_distanceSqaure)[1]
+        distanceSquare.clear()
+
+        for j in range(20):
+            distanceSquare[j]=(points_x[points_pool_50[7][closest_j]]-points_x[points_pool_50[8][j]])**2 + (points_y[points_pool_50[7][closest_j]]-points_y[points_pool_50[8][j]])**2
+        sorted_distanceSqaure = sorted(distanceSquare.items(), key=operator.itemgetter(1))
+        closest_j = map(operator.itemgetter(0), sorted_distanceSqaure)[0]
+        path_idices.append(closest_j)
+        path_len += map(operator.itemgetter(0), sorted_distanceSqaure)[1]
+        distanceSquare.clear()
+
+        for j in range(20):
+            distanceSquare[j]=(points_x[points_pool_50[8][closest_j]]-points_x[points_pool_50[9][j]])**2 + (points_y[points_pool_50[8][closest_j]]-points_y[points_pool_50[9][j]])**2
+        sorted_distanceSqaure = sorted(distanceSquare.items(), key=operator.itemgetter(1))
+        closest_j = map(operator.itemgetter(0), sorted_distanceSqaure)[0]
+        path_idices.append(closest_j)
+        path_len += map(operator.itemgetter(0), sorted_distanceSqaure)[1]
+        distanceSquare.clear()
+        
+        # print path_idices
+        # print path_len
+        path_idices_arrays.append(path_idices)
+        path_len_arrays.append(path_len)
+        path_idices = []
+        path_len = 0
+    
+    path_indices = []
+    path_indices.append(path_len_arrays.index(min(path_len_arrays)))
+    path_indices= path_indices + path_idices_arrays[path_len_arrays.index(min(path_len_arrays))]
+    # print path_indices
+
+    for i in range(10):
+        final_path.append(points_pool_50[i][path_indices[i]])
+    # print points_pool_50
+    # print final_path
 
 
-#after obtaining three arrays points_x, points_y, and points_z, which are all the possible combination of
-#longitude, latitude and elevation in the circle of radius 60m. We match the elevation points to find a 
-#closest path.
-def calculate_path (points_x, points_y, points_z, ten_points):
-    #find 5 closest point to z0
-    five_points_closest_to_z0 = dict()
-    distance_to_z0 = dict()
-    for i in range (len(points_z)):
-        five_points_closest_to_z0[i] = points_z[i]
-        distance_to_z0[i] = abs(float(points_z[i]) - float(ten_points[9]))
-    sorted_distance_to_z0 = sorted(distance_to_z0.items(), key=operator.itemgetter(1))
-    # print sorted_distance_to_z0[0:5] #(i, distance)
-    z0_index_0 = map(operator.itemgetter(0), sorted_distance_to_z0[0:5])[0]
-    z0_index_1 = map(operator.itemgetter(0), sorted_distance_to_z0[0:5])[1]
-    z0_index_2 = map(operator.itemgetter(0), sorted_distance_to_z0[0:5])[2]
-    z0_index_3 = map(operator.itemgetter(0), sorted_distance_to_z0[0:5])[3]
-    z0_index_4 = map(operator.itemgetter(0), sorted_distance_to_z0[0:5])[4]
-    distance_z0 = []
-    distance_z0.append(calculateDistanceEachPath(points_x, points_y, z0_index_0,ten_points))
-    # time.sleep(0.5) 
-    distance_z0.append(calculateDistanceEachPath(points_x, points_y, z0_index_1,ten_points))
-    # time.sleep(0.5) 
-    distance_z0.append(calculateDistanceEachPath(points_x, points_y, z0_index_2,ten_points))
-    # time.sleep(0.5) 
-    distance_z0.append(calculateDistanceEachPath(points_x, points_y, z0_index_3,ten_points))
-    # time.sleep(0.5) 
-    distance_z0.append(calculateDistanceEachPath(points_x, points_y, z0_index_4,ten_points))
-    lowest_distance = 1
-    lowest_distance_index = 0;
-    for i in range (5):
-        if distance_z0[i] < lowest_distance:
-            lowest_distance_index = i
-    z0_index_final = map(operator.itemgetter(0), sorted_distance_to_z0[0:5])[lowest_distance_index]
-    z0_final = []
-    z0_final.append(points_x[z0_index_final])
-    z0_final.append(points_y[z0_index_final])
-    z0_final.append(points_z[z0_index_final])
-    return z0_final
 
-
-
-
+    return
 
 if __name__ == '__main__':
 
@@ -208,31 +247,41 @@ if __name__ == '__main__':
     ax = fig.add_subplot(111, projection='3d')
     lowest_elevation = 1000
     zscale = 3
-    ax.set_xlabel("latitude")
-    ax.set_ylabel("longitude")
+    ax.set_xlabel("longitude")
+    ax.set_ylabel("latitude")
     ax.set_zlabel("elevation")
-
-    pathLongitute = []
-    pathLatitude = []
-    pathElevation = []
-
 
     points_x = []
     points_y = []
     points_z = []
-    
-    path_final = []
+    lowest_elevation = getPointsEvenly(float(Path_List[len(Path_List)/2][0]), float(Path_List[len(Path_List)/2][1]), pointsStr, points_x, points_y, points_z, lowest_elevation);
+    print len(points_x)
+    print len(points_y)
+    print len(points_z)
+
+    csvOutputArray = []
+    for i in range(len(points_x)):
+        # ax.scatter(points_x[i],points_y[i], points_z[i], c='b', marker='o')
+        csvOutputArray.append([points_x[i], points_y[i],points_z[i]])
+
+    #Output the large circle into a csv
+    with open('mydata.csv', 'w') as mycsvfile:
+        thedatawriter = csv.writer(mycsvfile, dialect='excel')
+        for row in csvOutputArray:
+            thedatawriter.writerow(row)
+
+    # Final path will contain len(Path_List)*10 values, each specifies the index of points in points_x, points_y and points_z array
+    final_path = []
     for i in range(len(Path_List)):
-        #generate points_x, points_y, points_z arrays and add points to the graphs
-        lowest_elevation = getPointsEvenly(float(Path_List[i][0]), float(Path_List[i][1]), pointsStr, points_x, points_y, points_z, lowest_elevation)
-        path_final = calculate_path(points_x, points_y, points_z, Path_List[i][2:12])
-        pathLongitute.append(path_final[0])
-        pathLatitude.append(path_final[1])
-        pathElevation.append(path_final[2])
+        calculate_path(points_x, points_y, points_z, final_path, Path_List[i][2:12])
+    # print final_path
+
+    for i in range(len(final_path)):
+        ax.scatter(points_x[final_path[i]],points_y[final_path[i]], points_z[final_path[i]], c='b', marker='o')
 
 
-    for i in range(len(pathLongitute)):
-        ax.scatter(pathLatitude[i],pathLongitute[i], pathElevation[i], c='b', marker='o')
+    # for i in range(len(pathLongitute)):
+    #     ax.scatter(pathLatitude[i],pathLongitute[i], pathElevation[i], c='b', marker='o')
     
     # ax.set_zlim3d(lowest_elevation, lowest_elevation+zscale)
     # ax.set_xlim3d(40.08, 40.10)

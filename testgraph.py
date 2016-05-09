@@ -23,9 +23,15 @@ ax.set_xlabel("latitude")
 ax.set_ylabel("longitute")
 ax.set_zlabel("elevation")
 
+csvOutputArray = []
 for i in range(len(Path_List)):
 	ax.scatter(float(Path_List[i][1]), float(Path_List[i][0]), float(Path_List[i][11]), c='b', marker='o')
+	csvOutputArray.append([float(Path_List[i][1]), float(Path_List[i][0]), float(Path_List[i][11])])
 
+with open('mydata.csv', 'w') as mycsvfile:
+    thedatawriter = csv.writer(mycsvfile, dialect='excel')
+    for row in csvOutputArray:
+        thedatawriter.writerow(row)
 # ax.set_zlim3d(lowest_elevation, lowest_elevation+zscale)
 # ax.set_xlim3d(40.08, 40.10)
 # ax.set_ylim3d(-88.2415, -88.2408)
