@@ -13,7 +13,7 @@ ELEVATION_BASE_URL = 'https://maps.google.com/maps/api/elevation/json'
 CHART_BASE_URL = 'http://chart.googleapis.com/chart'
 
 # Obtain data from csv file
-Path_CSV = open("../paths/07-35-16_12:35:51_MSFINAL.csv")
+Path_CSV = open("../paths/07-41-16_12:41:24_MSFINAL.csv")
 CSV_Reader = csv.reader(Path_CSV)
 Path_List = list(CSV_Reader) #the third column are elevations
 print len(Path_List)
@@ -59,10 +59,8 @@ def rtpairs(r, n):
 #this function takes in a coordinate's latitude, longitude, and an array to contain all the points generated
 #T specified the number of points at a certain radius and R is an arry of possible radius
 def getPointsEvenly(latitude, longitude, pointsStr, points_x, points_y, points_z, lowest_elevation):
-    T = [1,2,4,6, 8,10, 12,14,16]
-    R = [0.0,5,10,15, 20,25, 30,35,40,45]
-    # for i in range(len(T)):
-    #     T[i] = 10*T[i]
+    T = [1, 5,10,15, 20,25, 30]
+    R = [0.0,5, 10,15, 20,25,30]
     count = 0
     coordX = []
     coordY = []
@@ -234,11 +232,14 @@ if __name__ == '__main__':
         pathLatitude.append(path_final[1])
         pathElevation.append(path_final[2])
 
-
+    csvOutputArray = []
     for i in range(len(pathLongitute)):
         ax.scatter(pathLatitude[i],pathLongitute[i], pathElevation[i], c='b', marker='o')
-    
-    # ax.set_zlim3d(lowest_elevation, lowest_elevation+zscale)
-    # ax.set_xlim3d(40.08, 40.10)
-    # ax.set_ylim3d(-88.2415, -88.2408)
+        csvOutputArray.append([pathLongitute[i], pathLatitude[i], pathElevation[i]])
+
+    with open('mydata.csv', 'w') as mycsvfile:
+        thedatawriter = csv.writer(mycsvfile, dialect='excel')
+        for row in csvOutputArray:
+            thedatawriter.writerow(row)
+
     plt.show()    
